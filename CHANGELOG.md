@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.16 - 2021-02-10
+
+### Updated
+- Added options to disable draft preview caching
+- changed cache identifier from param to internal uri
+- app->request to app->getRequest()
+- composer 2 compatibility
+- Create Clear Cache Utility
+
 ## 1.0.15 - 2019-07-09
 
 ### Updated
@@ -47,7 +56,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 1.0.7 - 2018-10-12
 
 ### Added
-- Added new optimizedContent which removes whitespaces from cached file and therefore less size. 
+- Added new optimizedContent which removes whitespaces from cached file and therefore less size.
 
 ### Fixed
 - Fix updating cache element (thanks [bragle] (https://github.com/bragle))
