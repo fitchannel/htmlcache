@@ -19,12 +19,14 @@ use craft\web\Response;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
 use craft\services\Elements;
+use craft\services\Utilities;
 use craft\web\UrlManager;
 use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
 use craft\events\RegisterUrlRulesEvent;
 use bolden\htmlcache\services\HtmlcacheService;
 use bolden\htmlcache\models\Settings;
+use bolden\htmlcache\utilities\CacheUtility;
 
 use yii\base\Event;
 use craft\elements\db\ElementQuery;
@@ -35,6 +37,7 @@ use bolden\htmlcache\records\HtmlCacheCache;
 use bolden\htmlcache\records\HtmlCacheElement;
 use craft\elements\User;
 use craft\elements\GlobalSet;
+use craft\events\RegisterComponentTypesEvent;
 
 /**
  * Craft plugins are very much like little applications in and of themselves. We’ve made
@@ -117,7 +120,7 @@ class HtmlCache extends Plugin
         self::$plugin = $this;
 
         // ignore console requests
-        if ($this->isInstalled && !\Craft::$app->request->getIsConsoleRequest()) {
+        if ($this->isInstalled && !\Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->setComponents(
                 [
                     'htmlcacheService' => HtmlcacheService::class,
@@ -142,10 +145,14 @@ class HtmlCache extends Plugin
                 if ($this->htmlcacheService->canCreateCacheFile()) {
                     $elementClass = get_class($event->element);
                     if (!in_array($elementClass, [User::class, GlobalSet::class])) {
-                        $uri = \Craft::$app->request->getParam('p', '');
+                        $uri = \Craft::$app->getRequest()->getPathInfo() ?: $event->element->uri;
                         $siteId = \Craft::$app->getSites()->getCurrentSite()->id;
                         $elementId = $event->element->id;
-                        
+
+                        if (!$uri || strlen($uri) === 0) {
+                            return;
+                        }
+
                         // check if cache entry already exits otherwise create it
                         $cacheEntry = HtmlCacheCache::findOne(['uri' => $uri, 'siteId' => $siteId]);
                         if (!$cacheEntry) {
@@ -179,7 +186,7 @@ class HtmlCache extends Plugin
                 }
             });
         }
-        
+
         // After install create the temp folder
         Event::on(
             Plugins::class,
@@ -217,12 +224,21 @@ class HtmlCache extends Plugin
                 }
             }
         );
+
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            Event::on(
+                Utilities::class,
+                Utilities::EVENT_REGISTER_UTILITY_TYPES,
+                function(RegisterComponentTypesEvent $event) {
+                    $event->types[] = CacheUtility::class;
+                }
+            );
+        }
+
         parent::init();
     }
-    
+
     // Protected Methods
     // =========================================================================
 
 }
-            
-            
